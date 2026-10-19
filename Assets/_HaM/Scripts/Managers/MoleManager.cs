@@ -16,6 +16,7 @@ public class MoleManager : MonoBehaviour
     {
         EventManager.StartListening(Consts.Events.Game.Started, GameStarted);
         EventManager.StartListening(Consts.Events.Game.Ended, GameEnded);
+        
         EventManager.StartListening(Consts.Events.Mole.Hit, MoleHit);
     }
 
@@ -23,13 +24,13 @@ public class MoleManager : MonoBehaviour
     {
         EventManager.StopListening(Consts.Events.Game.Started, GameStarted);
         EventManager.StopListening(Consts.Events.Game.Ended, GameEnded);
+        
         EventManager.StopListening(Consts.Events.Mole.Hit, MoleHit);
     }
 
     private void GameStarted()
     {
         isGameActive = true;
-        
         RaiseRandomMole();
     }
     
@@ -66,6 +67,15 @@ public class MoleManager : MonoBehaviour
             return;
         
         var mole = GetRandomMole();
+
+        if (!mole)
+        {
+            Debug.LogError("[MoleManager] No available mole found");
+            Invoke(nameof(RaiseRandomMole), 1f);
+            
+            return;
+        }
+        
         mole.Raise();
 
         var coroutine = StartCoroutine(MoleMissedCoroutine(mole));

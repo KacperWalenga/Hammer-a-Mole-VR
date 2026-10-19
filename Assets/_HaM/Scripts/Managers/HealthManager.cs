@@ -42,7 +42,6 @@ public class HealthManager : MonoBehaviour
     private void SetHeart(int index, bool state)
     {
         var heart = hearts[index];
-
         var materials = heart.sharedMaterials;
 
         for (var i = 0; i < materials.Length; i++)

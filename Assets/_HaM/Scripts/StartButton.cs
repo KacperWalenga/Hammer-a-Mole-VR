@@ -25,6 +25,7 @@ public class StartButton : MonoBehaviour
     private void OnDestroy()
     {
         EventManager.StopListening(Consts.Events.Game.Ended, GameEnded);
+        interactableUnityEventWrapper.WhenSelect.RemoveListener(ButtonPressed);
     }
 
     private void GameEnded()

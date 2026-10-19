@@ -47,14 +47,12 @@ public class Mole : MonoBehaviour
     public void Raise()
     {
         isRaised = true;
-        
         MoveTo(defaultPosition + moveOffset);
     }
 
     public void Lower()
     {
         isRaised = false;
-        
         MoveTo(defaultPosition);
     }
 
