@@ -61,6 +61,6 @@ public class Mole : MonoBehaviour
         moveTween?.Kill();
 
         moveTween = transform.DOLocalMove(target, moveDuration)
-            .SetEase(Ease.OutQuad);
+            .SetEase(Ease.OutExpo);
     }
 }
