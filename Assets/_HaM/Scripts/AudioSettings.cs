@@ -11,14 +11,14 @@ public class AudioSettings : MonoBehaviour
     [SerializeField] private Transform lobbySongsContainer;
     [SerializeField] private Transform gameSongsContainer;
     
+    [field:SerializeField] public AudioClip CurrentGameMusic { get; private set; }
+    [field:SerializeField] public AudioClip CurrentLobbyMusic { get; private set; }
+    
     public event Action CurrentGameMusicChanged;
     public event Action CurrentLobbyMusicChanged;
     public event Action EffectsVolumeChanged;
     public event Action LobbyMusicVolumeChanged;
     public event Action GameMusicVolumeChanged;
-    
-    [field:SerializeField] public AudioClip CurrentGameMusic { get; private set; }
-    [field:SerializeField] public AudioClip CurrentLobbyMusic { get; private set; }
     
     private float effectsVolume = 0.5f;
     public float EffectsVolume
