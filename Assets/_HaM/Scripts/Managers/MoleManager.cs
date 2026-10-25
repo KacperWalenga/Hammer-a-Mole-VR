@@ -7,13 +7,23 @@ using Random = UnityEngine.Random;
 public class MoleManager : MonoBehaviour
 {
     [SerializeField] private Mole[] moles;
-    [SerializeField] private float raiseTime = 2f;
 
     private Dictionary<Mole, Coroutine> raisedMoleCoroutines = new();
+    private DifficultySettings difficultySettings;
     private bool isGameActive;
+    private float gameStartTime;
     
     private void Start()
     {
+        difficultySettings = FindAnyObjectByType<DifficultySettings>();
+
+        if (!difficultySettings)
+        {
+            Debug.LogError("[MoleManager] DifficultySettings not found");
+            enabled = false;
+            return;
+        }
+        
         EventManager.StartListening(Consts.Events.Game.Started, GameStarted);
         EventManager.StartListening(Consts.Events.Game.Ended, GameEnded);
         
@@ -31,6 +41,7 @@ public class MoleManager : MonoBehaviour
     private void GameStarted()
     {
         isGameActive = true;
+        gameStartTime = Time.time;
         RaiseRandomMole();
     }
     
@@ -76,7 +87,7 @@ public class MoleManager : MonoBehaviour
             return;
         }
         
-        mole.Raise();
+        mole.Raise(difficultySettings.CurrentLevel.RollMoleType());
 
         var coroutine = StartCoroutine(MoleMissedCoroutine(mole));
         raisedMoleCoroutines.Add(mole, coroutine);
@@ -84,11 +95,13 @@ public class MoleManager : MonoBehaviour
 
     private IEnumerator MoleMissedCoroutine(Mole mole)
     {
+        var raiseTime = difficultySettings.CurrentLevel.GetRaiseTime(Time.time - gameStartTime);
         yield return new WaitForSeconds(raiseTime);
         
-        mole.Lower();
-        EventManager.TriggerEvent(Consts.Events.Mole.Missed);
+        if (mole.Type == MoleType.Normal)
+            EventManager.TriggerEvent(Consts.Events.Mole.Missed);
         
+        mole.Lower();
         RaiseRandomMole();
         raisedMoleCoroutines.Remove(mole);
     }

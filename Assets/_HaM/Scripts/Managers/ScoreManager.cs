@@ -1,20 +1,30 @@
-using System;
 using TMPro;
 using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
     [SerializeField] private int pointsPerMole = 10;
+    [SerializeField] private int goldenPointsMultiplier = 5;
     [SerializeField] private TMP_Text scoreText;
     [SerializeField] private TMP_Text timerText;
 
     public int Score { get; private set; }
     public float Time { get; private set; }
 
+    private DifficultySettings difficultySettings;
     private bool isGameStarted;
 
     private void Start()
     {
+        difficultySettings = FindAnyObjectByType<DifficultySettings>();
+
+        if (!difficultySettings)
+        {
+            Debug.LogError("[ScoreManager] DifficultySettings not found");
+            enabled = false;
+            return;
+        }
+        
         EventManager.StartListening(Consts.Events.Game.Prepare, GamePrepare);
         EventManager.StartListening(Consts.Events.Game.Started, GameStarted);
         EventManager.StartListening(Consts.Events.Game.Ended, GameEnded);
@@ -56,9 +66,19 @@ public class ScoreManager : MonoBehaviour
         isGameStarted = false;
     }
 
-    private void MoleHit()
+    private void MoleHit(object param)
     {
-        Score += pointsPerMole;
+        if (param is not Mole mole)
+            return;
+
+        var points = mole.Type switch
+        {
+            MoleType.Golden => pointsPerMole * goldenPointsMultiplier,
+            MoleType.Bomb => 0,
+            _ => pointsPerMole
+        };
+
+        Score += Mathf.RoundToInt(points * difficultySettings.CurrentLevel.ScoreMultiplier);
         scoreText.text = Score.ToString("D9");
     }
 

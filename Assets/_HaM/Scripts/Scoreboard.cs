@@ -3,20 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[Serializable]
-public class ScoreDataEntry
-{
-    public int Score;
-    public float Time;
-    public string DateTime;
-}
-
-[Serializable]
-public class ScoreHistoryData
-{
-    public List<ScoreDataEntry> ScoreDataEntries = new();
-}
-
 public class Scoreboard : MonoBehaviour
 {
     [SerializeField] private ScoreboardEntry scoreboardEntryPrefab;
@@ -24,6 +10,7 @@ public class Scoreboard : MonoBehaviour
     
     private ScoreHistoryData scoreHistoryData = new ();
     private ScoreManager scoreManager;
+    private DifficultySettings difficultySettings;
 
     private const int MAX_RESULTS = 10;
     private const string SAVE_KEY = "Scoreboard";
@@ -31,20 +18,32 @@ public class Scoreboard : MonoBehaviour
     private void Awake()
     {
         Load();
-        RefreshScoreboard();
     }
 
     private void Start()
     {
-        EventManager.StartListening(Consts.Events.Game.Ended, GameEnded);
-        
         scoreManager = FindAnyObjectByType<ScoreManager>();
+        difficultySettings = FindAnyObjectByType<DifficultySettings>();
 
-        if (scoreManager) 
+        if (!scoreManager || !difficultySettings)
+        {
+            Debug.LogWarning("[Scoreboard] ScoreManager or DifficultySettings not found");
+            enabled = false;
             return;
+        }
         
-        Debug.LogWarning("[Scoreboard] ScoreManager not found");
-        enabled = false;
+        EventManager.StartListening(Consts.Events.Game.Ended, GameEnded);
+        difficultySettings.DifficultyChanged += RefreshScoreboard;
+        
+        RefreshScoreboard();
+    }
+
+    private void OnDestroy()
+    {
+        EventManager.StopListening(Consts.Events.Game.Ended, GameEnded);
+        
+        if (difficultySettings)
+            difficultySettings.DifficultyChanged -= RefreshScoreboard;
     }
 
     private void GameEnded()
@@ -53,15 +52,12 @@ public class Scoreboard : MonoBehaviour
         {
             Score = scoreManager.Score,
             Time = scoreManager.Time,
-            DateTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")
+            DateTime = DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss"),
+            Difficulty = difficultySettings.CurrentDifficulty
         };
         
         scoreHistoryData.ScoreDataEntries.Add(entry);
-
-        scoreHistoryData.ScoreDataEntries = scoreHistoryData.ScoreDataEntries
-            .OrderByDescending(x => x.Score)
-            .Take(MAX_RESULTS)
-            .ToList();
+        TrimEntries();
         
         Save();
         RefreshScoreboard();
@@ -81,9 +77,16 @@ public class Scoreboard : MonoBehaviour
         if (!string.IsNullOrEmpty(json))
             scoreHistoryData = JsonUtility.FromJson<ScoreHistoryData>(json);
 
+        TrimEntries();
+    }
+
+    private void TrimEntries()
+    {
         scoreHistoryData.ScoreDataEntries = scoreHistoryData.ScoreDataEntries
-            .OrderByDescending(x => x.Score)
-            .Take(MAX_RESULTS)
+            .GroupBy(x => x.Difficulty)
+            .SelectMany(group => group
+                .OrderByDescending(x => x.Score)
+                .Take(MAX_RESULTS))
             .ToList();
     }
 
@@ -94,7 +97,11 @@ public class Scoreboard : MonoBehaviour
         for (var i = childCount - 1; i >= 0; i--)
             Destroy(scoreboardEntriesContainer.GetChild(i).gameObject);
         
-        foreach (var scoreDataEntry in scoreHistoryData.ScoreDataEntries)
+        var entries = scoreHistoryData.ScoreDataEntries
+            .Where(x => x.Difficulty == difficultySettings.CurrentDifficulty)
+            .OrderByDescending(x => x.Score);
+        
+        foreach (var scoreDataEntry in entries)
         {
             var scoreboardEntry = Instantiate(scoreboardEntryPrefab, scoreboardEntriesContainer);
             scoreboardEntry.Init(scoreDataEntry);

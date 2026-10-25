@@ -36,13 +36,16 @@ public class StartButton : MonoBehaviour
 
     private void ButtonPressed()
     {
-        EventManager.TriggerEvent(Consts.Events.Game.Prepare);
+        if (!isActive)
+            return;
+        
+        isActive = false;
+        buttonText.color = disabledButtonColor;
         
         StopCoroutine(blinkingCoroutine);
         blinkingCoroutine = null;
         
-        buttonText.color = disabledButtonColor;
-        isActive = false;
+        EventManager.TriggerEvent(Consts.Events.Game.Prepare);
     }
 
     private IEnumerator StartBlinking()

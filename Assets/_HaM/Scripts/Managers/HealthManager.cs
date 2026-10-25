@@ -6,36 +6,95 @@ public class HealthManager : MonoBehaviour
     [SerializeField] private Material disabledMaterial;
     [SerializeField] private MeshRenderer[] hearts;
 
-    private int maxHealth => hearts.Length;
-    private int currentHealth;
-    
+    public int MaxHealth { get; private set; }
+    public int CurrentHealth { get; private set; }
+
+    private DifficultySettings difficultySettings;
+
     private void Start()
     {
+        difficultySettings = FindAnyObjectByType<DifficultySettings>();
+
+        if (!difficultySettings)
+        {
+            Debug.LogError("[HealthManager] DifficultySettings not found");
+            enabled = false;
+            return;
+        }
+
         EventManager.StartListening(Consts.Events.Game.Prepare, Prepare);
         EventManager.StartListening(Consts.Events.Mole.Missed, RemoveHeart);
+        EventManager.StartListening(Consts.Events.Mole.Hit, MoleHit);
+
+        difficultySettings.DifficultyChanged += UpdateHearts;
+        UpdateHearts();
+    }
+
+    private void MoleHit(object param)
+    {
+        if (param is not Mole mole)
+            return;
+
+        switch (mole.Type)
+        {
+            case MoleType.Bomb:
+                RemoveHeart();
+                break;
+            case MoleType.Heart:
+                AddHeart();
+                break;
+        }
     }
 
     private void RemoveHeart()
     {
-        currentHealth -= 1;
-        SetHeart(currentHealth, false);
-        
-        if(currentHealth <= 0)
+        if (CurrentHealth <= 0)
+            return;
+
+        CurrentHealth -= 1;
+        SetHeart(CurrentHealth, false);
+
+        if(CurrentHealth <= 0)
             EventManager.TriggerEvent(Consts.Events.Game.Ended);
+    }
+
+    private void AddHeart()
+    {
+        if (CurrentHealth >= MaxHealth)
+            return;
+
+        SetHeart(CurrentHealth, true);
+        CurrentHealth += 1;
     }
 
     private void OnDestroy()
     {
         EventManager.StopListening(Consts.Events.Game.Prepare, Prepare);
+        EventManager.StopListening(Consts.Events.Mole.Missed, RemoveHeart);
+        EventManager.StopListening(Consts.Events.Mole.Hit, MoleHit);
+
+        if (difficultySettings)
+            difficultySettings.DifficultyChanged -= UpdateHearts;
     }
 
     private void Prepare()
     {
-        currentHealth = maxHealth;
+        UpdateHearts();
+    }
 
-        for (var i = 0; i < maxHealth; i++)
+    private void UpdateHearts()
+    {
+        MaxHealth = Mathf.Min(difficultySettings.CurrentLevel.MaxHealth, hearts.Length);
+        CurrentHealth = MaxHealth;
+
+        for (var i = 0; i < hearts.Length; i++)
         {
-            SetHeart(i, true);
+            var isAvailable = i < MaxHealth;
+
+            hearts[i].gameObject.SetActive(isAvailable);
+
+            if (isAvailable)
+                SetHeart(i, true);
         }
     }
 

@@ -7,6 +7,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip startGameSound;
     [SerializeField] private AudioClip correctSound;
     [SerializeField] private AudioClip errorSound;
+    [SerializeField] private AudioClip goldenSound;
+    [SerializeField] private AudioClip heartSound;
     
     private AudioSource audioSource;
     private AudioSettings audioSettings;
@@ -33,6 +35,7 @@ public class AudioManager : MonoBehaviour
         {
             Debug.LogError("[AudioManager] AudioSettings not found");
             enabled = false;
+            return;
         }
         
         audioSettings.CurrentGameMusicChanged += AudioSettingsOnCurrentGameMusicChanged;
@@ -52,7 +55,11 @@ public class AudioManager : MonoBehaviour
         EventManager.StopListening(Consts.Events.Mole.Hit, MoleHit);
         EventManager.StopListening(Consts.Events.Mole.Missed, MoleMissed);
         
+        if (!audioSettings)
+            return;
+        
         audioSettings.CurrentGameMusicChanged -= AudioSettingsOnCurrentGameMusicChanged;
+        audioSettings.CurrentLobbyMusicChanged -= AudioSettingsOnCurrentLobbyMusicChanged;
         audioSettings.GameMusicVolumeChanged -= AudioSettingsOnGameMusicVolumeChanged;
         audioSettings.LobbyMusicVolumeChanged -= AudioSettingsOnLobbyMusicVolumeChanged;
     }
@@ -120,9 +127,20 @@ public class AudioManager : MonoBehaviour
         audioSource.Play();
     }
 
-    private void MoleHit()
+    private void MoleHit(object param)
     {
-        audioSource.PlayOneShot(correctSound, audioSettings.EffectsVolume);
+        if (param is not Mole mole)
+            return;
+
+        var clip = mole.Type switch
+        {
+            MoleType.Bomb => errorSound,
+            MoleType.Golden when goldenSound => goldenSound,
+            MoleType.Heart when heartSound => heartSound,
+            _ => correctSound
+        };
+        
+        audioSource.PlayOneShot(clip, audioSettings.EffectsVolume);
     }
 
     private void MoleMissed()

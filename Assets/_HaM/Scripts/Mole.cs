@@ -6,6 +6,15 @@ public class Mole : MonoBehaviour
     [SerializeField] private Vector3 moveOffset = new (0, 0.1f, 0);
     [SerializeField] private float moveDuration = 0.1f;
 
+    [Header("Types")]
+    [SerializeField] private MeshRenderer meshRenderer;
+    [SerializeField] private Material normalMaterial;
+    [SerializeField] private Material goldenMaterial;
+    [SerializeField] private Material bombMaterial;
+    [SerializeField] private Material heartMaterial;
+
+    public MoleType Type { get; private set; }
+
     private Vector3 defaultPosition;
     private bool isRaised;
     private Tween moveTween;
@@ -15,37 +24,22 @@ public class Mole : MonoBehaviour
         defaultPosition = transform.localPosition;
     }
 
-    private void Start()
-    {
-        EventManager.StartListening(Consts.Events.Mole.Missed, Missed);
-    }
-
-    private void OnDestroy()
-    {
-        EventManager.StopListening(Consts.Events.Mole.Missed, Missed);
-    }
-
-    private void Missed(object mole)
-    {
-        if (!ReferenceEquals(mole, this))
-            return;
-        
-        Lower();
-    }
-
     public void Hit()
     {
         if (!isRaised)
             return;
         
-        Lower();
-        
         EventManager.TriggerEvent(Consts.Events.Mole.Hit);
         EventManager.TriggerEvent(Consts.Events.Mole.Hit, this);
+
+        Lower();
     }
 
-    public void Raise()
+    public void Raise(MoleType type = MoleType.Normal)
     {
+        Type = type;
+        SetMaterial(GetMaterial(type));
+
         isRaised = true;
         MoveTo(defaultPosition + moveOffset);
     }
@@ -54,6 +48,12 @@ public class Mole : MonoBehaviour
     {
         isRaised = false;
         MoveTo(defaultPosition);
+        
+        if(Type == MoleType.Normal)
+            return;
+
+        Type = MoleType.Normal;
+        SetMaterial(GetMaterial(Type));
     }
 
     private void MoveTo(Vector3 target)
@@ -62,5 +62,31 @@ public class Mole : MonoBehaviour
 
         moveTween = transform.DOLocalMove(target, moveDuration)
             .SetEase(Ease.OutExpo);
+    }
+
+    private Material GetMaterial(MoleType type)
+    {
+        var material = type switch
+        {
+            MoleType.Golden => goldenMaterial,
+            MoleType.Bomb => bombMaterial,
+            MoleType.Heart => heartMaterial,
+            _ => normalMaterial
+        };
+
+        return material ? material : normalMaterial;
+    }
+
+    private void SetMaterial(Material material)
+    {
+        if (!meshRenderer || !material)
+            return;
+
+        var materials = meshRenderer.sharedMaterials;
+
+        for (var i = 0; i < materials.Length; i++)
+            materials[i] = material;
+
+        meshRenderer.sharedMaterials = materials;
     }
 }
