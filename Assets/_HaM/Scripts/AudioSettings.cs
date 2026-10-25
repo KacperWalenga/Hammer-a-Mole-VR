@@ -62,7 +62,7 @@ public class AudioSettings : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void Awake()
     {
         foreach (var song in gameMusics)
         {
