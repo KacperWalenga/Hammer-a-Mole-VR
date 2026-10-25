@@ -19,6 +19,8 @@ public class Mole : MonoBehaviour
     private bool isRaised;
     private Tween moveTween;
 
+    private const int HAT_MATERIAL_INDEX = 4;
+
     private void Awake()
     {
         defaultPosition = transform.localPosition;
@@ -83,9 +85,7 @@ public class Mole : MonoBehaviour
             return;
 
         var materials = meshRenderer.sharedMaterials;
-
-        for (var i = 0; i < materials.Length; i++)
-            materials[i] = material;
+        materials[HAT_MATERIAL_INDEX] = material;
 
         meshRenderer.sharedMaterials = materials;
     }
