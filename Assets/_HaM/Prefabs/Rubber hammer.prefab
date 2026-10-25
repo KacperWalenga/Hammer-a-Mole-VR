@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7591543350820783462}
   - component: {fileID: 6613588330489039822}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HandGrabPose
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -105,7 +105,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3002726193180042332}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -139,7 +139,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7461743323721021472}
   - component: {fileID: 8302064621401873398}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: HandGrabPose
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -239,7 +239,7 @@ GameObject:
   - component: {fileID: 8061224810981941257}
   - component: {fileID: 8251513501055436622}
   - component: {fileID: 4365340205556042330}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Rubber hammer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -326,6 +326,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8f3f95d72811d547afcf414c29ff2d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Hammer
+  handGrabInteractables: []
+  grabInteractables: []
 --- !u!136 &8251513501055436622
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -377,7 +379,7 @@ GameObject:
   - component: {fileID: 9103437820161399383}
   - component: {fileID: 4571455646137659902}
   - component: {fileID: 6285449575927258756}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Colliders
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -456,7 +458,7 @@ GameObject:
   - component: {fileID: 3895207906016400520}
   - component: {fileID: 1921531188480639900}
   - component: {fileID: 2919002429294404210}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ISDK_HandGrabInteraction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -552,7 +554,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8796856418777574265}
   - component: {fileID: 7023622484385349940}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ISDK_HandGrabInteraction_mirror
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -683,6 +685,10 @@ PrefabInstance:
     - target: {fileID: 4582984025718723352, guid: 09a2ee2762476834083711dd68080b6c, type: 3}
       propertyPath: m_Name
       value: SM_Bouncy_Hammer_Toy
+      objectReference: {fileID: 0}
+    - target: {fileID: 4582984025718723352, guid: 09a2ee2762476834083711dd68080b6c, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
